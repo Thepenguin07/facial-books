@@ -20,7 +20,7 @@ Faceengine.py	Houses the facial recognition logic (likely using OpenCV, dlib, or
 Clone the repository:
 
 Bash
-git clone https://github.com/your-username/FacialBooks.git
+git clone https://github.com/Thepenguin07/facial-books
 cd FacialBooks
 Install Dependencies:
 (Ensure you have Python 3.8+ installed)
