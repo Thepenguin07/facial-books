@@ -11,7 +11,7 @@ REQUIRED_PACKAGES = [
     "pandas",
     "openpyxl",
     "customtkinter",
-    "tensorflow",       
+    "tensorflow",        # deep learning framework (replaces face_recognition)
 ]
 
 def install_packages():
