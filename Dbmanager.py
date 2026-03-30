@@ -1,19 +1,8 @@
-"""
-Handles all SQLite database operations:
-- Employee Table
-- Attendance Log Table
-- Salary Table
-"""
-
 import sqlite3
 import os
 import json
 from datetime import datetime
-
-
 DB_PATH = os.path.join(os.path.dirname(__file__), "facialbooks.db")
-
-
 class DatabaseManager:
     """Manages all database interactions for FacialBooks."""
 
@@ -23,15 +12,13 @@ class DatabaseManager:
     def _get_connection(self):
         """Returns a new database connection."""
         conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row  # Access columns by name
+        conn.row_factory = sqlite3.Row
         return conn
 
     def initialize(self):
         """Creates all required tables if they don't exist."""
         conn = self._get_connection()
         cursor = conn.cursor()
-
-        # Employee Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS employees (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,8 +29,6 @@ class DatabaseManager:
                 registered_on TEXT DEFAULT (datetime('now','localtime'))
             )
         """)
-
-        # Attendance Log Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS attendance_log (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,8 +40,6 @@ class DatabaseManager:
                 FOREIGN KEY (employee_id) REFERENCES employees(id)
             )
         """)
-
-        # Salary Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS salary_records (
                 id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,8 +54,6 @@ class DatabaseManager:
 
         conn.commit()
         conn.close()
-
-    # ─────────────────────── Employee Operations ────────────────────────
 
     def add_employee(self, name: str, department: str, hourly_rate: float,
                      encoding: list) -> int:
@@ -145,9 +126,6 @@ class DatabaseManager:
             enc_list = json.loads(row["encoding"])
             result.append((row["id"], row["name"], np.array(enc_list)))
         return result
-
-    # ─────────────────────── Attendance Operations ──────────────────────
-
     def log_entry(self, employee_id: int) -> bool:
         """
         Logs an entry time for today. Prevents duplicate entries within 5 minutes.
@@ -157,8 +135,6 @@ class DatabaseManager:
         cursor = conn.cursor()
         today = datetime.now().strftime("%Y-%m-%d")
         now_str = datetime.now().strftime("%H:%M:%S")
-
-        # Check if already logged in today without exit
         cursor.execute(
             "SELECT * FROM attendance_log WHERE employee_id=? AND log_date=? "
             "AND entry_time IS NOT NULL AND exit_time IS NULL",
@@ -167,7 +143,7 @@ class DatabaseManager:
         existing = cursor.fetchone()
         if existing:
             conn.close()
-            return False  # Already clocked in
+            return False  
 
         cursor.execute(
             "INSERT INTO attendance_log (employee_id, log_date, entry_time) VALUES (?, ?, ?)",
@@ -267,9 +243,6 @@ class DatabaseManager:
         rows = cursor.fetchall()
         conn.close()
         return rows
-
-    # ─────────────────────── Payroll Operations ─────────────────────────
-
     def generate_salary_records(self, month: str) -> list:
         """
         Computes salary for all employees for a given month.
@@ -291,8 +264,6 @@ class DatabaseManager:
         results = []
         for row in rows:
             gross = round(row["total_hours"] * row["hourly_rate"], 2)
-
-            # Upsert salary record
             cursor.execute(
                 "SELECT id FROM salary_records WHERE employee_id=? AND month=?",
                 (row["id"], month)
